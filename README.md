@@ -1,7 +1,6 @@
-# GoCC
+# Gopher Cruise Control [GoCC]
 
-An in-memory, stand-alone rate limiter with a fixed time window, implemented in Go.
-Originally written during a hack event at Kivra, and later decided to be open sourced.
+An in-memory, stand-alone rate limiter with a fixed time window, implemented in Go, using the actor model.
 
 Deployable as a stand-alone application, locally or in a cloud environment (e.g. Kubernetes). Other applications can
 then query it to check if they are allowed to perform an operation, or if they should wait in a queue.
@@ -41,7 +40,7 @@ This Readme was mostly written by LLMs :).
 To start it with default settings:
 
 ```
-gopher-cruise-control
+gocc
 ```
 
 ### Help
@@ -51,7 +50,7 @@ default/global values. It is also possible to set the rate limit for each key in
 the section on that below.
 
 ```
-gopher-cruise-control --help
+gocc --help
 ```
 
 This will display the following help message:
@@ -67,8 +66,8 @@ An in-memory rate limiter with a fixed time window. Runs 1 go-routine per key.
 - GET to /debug|/debug/:key introspect the state of limiters.
 
 Usage:
-  gopher-cruise-control [flags]
-  gopher-cruise-control [command]
+  gocc [flags]
+  gocc [command]
 
 Available Commands:
   benchmark   run specific benchmarks
@@ -91,15 +90,15 @@ Flags:
       --log5xx                      if true, log 5xx responses (env: LOG_5XX) (default true)
   -s, --server-type string          echo,echo-http2,fast. 'fast' is a fasthttp server, not fully implemented yet (env: SERVER_TYPE) (default "echo-http2")
   -i, --instance-urls strings       For distributed mode, a list of instance urls to use (incl this instance) (env: INSTANCE_URLS)
-  -h, --help                        help for gopher-cruise-control
+  -h, --help                        help for gocc
 
-Use "gopher-cruise-control [command] --help" for more information about a command.
+Use "gocc [command] --help" for more information about a command.
 ```
 
 Example with custom settings:
 
 ```
-gopher-cruise-control --max-requests 200 --window-millis 5000 --port 9090 --log-format json --log-level DEBUG
+gocc --max-requests 200 --window-millis 5000 --port 9090 --log-format json --log-level DEBUG
 ```
 
 ### Configuration file
@@ -132,7 +131,7 @@ configurations for each key. Example:
       "window_millis": 120000
     },
     {
-      "key_pattern": "user-abc",
+      "key_pattern": "user-cjk",
       "key_pattern_is_regex": false,
       "max_requests_per_window": 1
     }
@@ -146,7 +145,7 @@ configurations for each key. Example:
 * If multiple key patterns match a key, they will all be applied in the order they are defined in the configuration
   file.
 * Hot reloading of the configuration file **_is_** supported (so you can just mount and modify a k8s configmap without
-  restarting `gopher-cruise-control`).
+  restarting `gocc`).
 
 ## API
 
@@ -264,9 +263,9 @@ The code is structured into several packages:
 
 There is currently, somewhat intentionally, no coordinated instance-to-instance communication in the project.
 To deploy at scale, you should deploy it as a stateful set in Kubernetes with a headless service. This produces stable
-dns names for each instance. These can be passed as env or cli arguments to `gopher-cruise-control` at startup.
+dns names for each instance. These can be passed as env or cli arguments to `gocc` at startup.
 
-Clients can then either figure out the correct instance themselves, or send it to `gopher-cruise-control`,
+Clients can then either figure out the correct instance themselves, or send it to `gocc`,
 which will look at the request and determine if it hit the right instance, or needs to be forwarded to another instance.
 
 The correct instance is determined by hashing the key, and then using the modulo operator to determine which instance
@@ -279,7 +278,7 @@ should handle the request. No databases required, so far ;).
 * `golangci-lint run ./...` or `make lint`
 * `make docker`
     * `DOCKER_IMAGE_REPO`, defaults to `somewhere.over/the/rainbow`
-    * `DOCKER_IMAGE_NAME`, defaults to `gopher-cruise-control`
+    * `DOCKER_IMAGE_NAME`, defaults to `gocc`
     * `DOCKER_IMAGE_TAG`, defaults to `latest`
 * `make release`
 
@@ -358,7 +357,7 @@ protocol sitting on top of TCP can be constructed, its theoretical performance c
 with the request size. A proper custom
 protocol should have high entropy generally not be compressible.
 
-This was original explored within the scope of the `gopher-cruise-control` project, but was later moved to a separate
+This was original explored within the scope of the `gocc` project, but was later moved to a separate
 project called `snail`, which was open sourced and can be found at https://github.com/GiGurra/snail.
 
 ### What about quic/http3?
