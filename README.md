@@ -1,5 +1,8 @@
 # Gopher Cruise Control [GoCC]
 
+NOTE: This repo is archived and left here as a reference of where the code is from. Further development and
+maintenance will continue at https://github.com/gigurra/gocc.
+
 An in-memory, stand-alone rate limiter with a fixed time window, implemented in Go, using the actor model.
 This app/service was originally written as part of a hack event at Kivra, and was later open sourced under
 the MIT license.
